@@ -4,6 +4,8 @@ from typing import List, NamedTuple, Optional, Tuple
 import torch
 from tokenizers import SentencePieceBPETokenizer
 from torch.utils.data import Dataset
+from datasets import Dataset, load_from_disk, concatenate_datasets
+import pandas as pd
 
 GPTDecodingInputType = Tuple[torch.Tensor, torch.Tensor]
 GPTInputsType = Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
@@ -121,3 +123,20 @@ def load_korquad_dataset(dataset_path: str) -> List[QAExample]:
                 examples.append(example)
 
     return examples
+
+def load_baseline_dataset(dataset_path: str, split: str) -> List[QAExample]:
+    dataset=load_from_disk(dataset_path)
+    dataset=dataset[split]
+    dataset=dataset.flatten()
+    df:pd.DataFrame=dataset.to_pandas()
+
+    examples=[]
+    for i,row in df.iterrows():
+        example=QAExample(row['context'],row['answers.text'][0],row['question'])
+        examples.append(example)
+    return examples
+
+if __name__=="__main__":
+    korquad = load_korquad_dataset('./data/train.json')
+    dataset=load_baseline_dataset("../level2_nlp_mrc-nlp-03/data/train_dataset/")
+    print(dataset[0])

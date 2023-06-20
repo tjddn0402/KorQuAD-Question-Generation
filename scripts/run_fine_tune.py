@@ -13,22 +13,21 @@ from tqdm import tqdm
 from transformers import GPT2LMHeadModel, get_linear_schedule_with_warmup
 
 from korquad_qg.config import QGConfig
-from korquad_qg.dataset import QGDataset, dynamic_padding_collate_fn, load_korquad_dataset
+from korquad_qg.dataset import QGDataset, dynamic_padding_collate_fn, load_korquad_dataset, load_baseline_dataset
 from korquad_qg.utils import TqdmLoggingHandler
 
-parser = ArgumentParser()
-parser.add_argument("--train-dataset", type=str, help="학습 데이터 경로")
-parser.add_argument("--dev-dataset", type=str, help="평가 데이터 경로")
+# parser = ArgumentParser()
+# parser.add_argument("--dataset", default="/opt/ml/tests/level2_nlp_mrc-nlp-03/data/train_dataset", type=str, help="학습 데이터 경로")
 
-parser.add_argument("--epochs", type=int, help="학습 전체를 반복할 횟수")
-parser.add_argument("--lr", type=float, help="learning rate")
+# parser.add_argument("--epochs", type=int, help="학습 전체를 반복할 횟수")
+# parser.add_argument("--lr", type=float, help="learning rate")
 
-parser.add_argument("--train-batch-size", type=int, help="학습에 사용할 배치 크기")
-parser.add_argument("--eval-batch-size", type=int, help="평가에 사용할 배치 크기")
-parser.add_argument("--validation-interval", type=int, help="dev 셋에 대해서 validation 을 수행할 steps")
-parser.add_argument("--save-interval", type=int, help="모델을 저장할 steps")
+# parser.add_argument("--train_batch_size", type=int, help="학습에 사용할 배치 크기")
+# parser.add_argument("--eval_batch_size", type=int, help="평가에 사용할 배치 크기")
+# parser.add_argument("--validation_interval", type=int, help="dev 셋에 대해서 validation 을 수행할 steps")
+# parser.add_argument("--save_interval", type=int, help="모델을 저장할 steps")
 
-parser.add_argument("--output-dir", type=str, default="artifacts/", help="모델과 학습 로그를 저장할 경로")
+# parser.add_argument("--output_dir", type=str, default="artifacts/", help="모델과 학습 로그를 저장할 경로")
 
 
 def main(config: QGConfig):
@@ -43,15 +42,17 @@ def main(config: QGConfig):
         vocab_filename=config.vocab_path, merges_filename=config.tokenizer_merges_path, add_prefix_space=False
     )
 
-    logger.info("loading train dataset")
-    train_examples = load_korquad_dataset(config.train_dataset)
+    logger.info("loading train & dev dataset")
+    # train_dev_examples = load_baseline_dataset(config.dataset,)
+
+    train_examples = load_baseline_dataset(config.dataset,split="train")
+    dev_examples = load_baseline_dataset(config.dataset,split="validation")
+
     train_dataset = QGDataset(train_examples, tokenizer, config.max_sequence_length)
     train_dataloader = DataLoader(
         train_dataset, config.train_batch_size, shuffle=True, collate_fn=dynamic_padding_collate_fn
     )
 
-    logger.info("loading dev dataset")
-    dev_examples = load_korquad_dataset(config.dev_dataset)
     dev_dataset = QGDataset(dev_examples, tokenizer, config.max_sequence_length, is_train=False)
     dev_dataloader = DataLoader(dev_dataset, config.eval_batch_size, collate_fn=dynamic_padding_collate_fn)
 
@@ -138,11 +139,12 @@ def _create_logger(output_dir: str):
 
 
 if __name__ == "__main__":
-    kwargs = {key: value for key, value in vars(parser.parse_args()).items() if value is not None}
+    # kwargs = {key: value for key, value in vars(parser.parse_args()).items() if value is not None}
 
-    timestamp = datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
-    artifacts_dir = os.path.join(kwargs["output_dir"], f"gpt2_{timestamp}")
-    os.makedirs(artifacts_dir, exist_ok=True)
-    kwargs["output_dir"] = artifacts_dir
+    # timestamp = datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
+    # artifacts_dir = os.path.join(kwargs["output_dir"], f"gpt2_{timestamp}")
+    # os.makedirs(artifacts_dir, exist_ok=True)
+    # kwargs["output_dir"] = artifacts_dir
 
-    main(QGConfig(**kwargs))
+    # main(QGConfig(**kwargs))
+    main(QGConfig())

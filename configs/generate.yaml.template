@@ -1,0 +1,4 @@
+model_path: /opt/ml/tests/KorQuAD-Question-Generation/model/QG_kogpt2.pth
+output_path: output.log
+num_beams: 5
+split: validation

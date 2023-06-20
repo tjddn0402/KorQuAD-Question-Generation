@@ -8,18 +8,13 @@ from tqdm import tqdm
 from transformers import GPT2LMHeadModel
 
 from korquad_qg.config import QGConfig
-from korquad_qg.dataset import MAX_QUESTION_SPACE, MIN_QUESTION_SPACE, QGDecodingDataset, load_korquad_dataset
+from korquad_qg.dataset import MAX_QUESTION_SPACE, MIN_QUESTION_SPACE, QGDecodingDataset, load_korquad_dataset, load_baseline_dataset
+import hydra
+from omegaconf import OmegaConf
 
-parser = ArgumentParser()
-parser.add_argument("-m", "--model-path", type=str, required=True)
-parser.add_argument("-o", "--output-path", type=str, required=True)
-parser.add_argument("-s", "--num-samples", type=int)
-parser.add_argument("-b", "--num-beams", type=int, default=5)
-
-
-def main():
+@hydra.main(config_path="../configs", config_name="generate")
+def main(args: OmegaConf):
     config = QGConfig()
-    args = parser.parse_args()
 
     model = GPT2LMHeadModel.from_pretrained("taeminlee/kogpt2")
     model.load_state_dict(torch.load(args.model_path, map_location="cpu"))
@@ -27,11 +22,11 @@ def main():
     model = model.to(device)
 
     tokenizer = SentencePieceBPETokenizer.from_file(
-        vocab_filename="tokenizer/vocab.json", merges_filename="tokenizer/merges.txt", add_prefix_space=False
+        vocab_filename="/opt/ml/tests/KorQuAD-Question-Generation/tokenizer/vocab.json",
+        merges_filename="/opt/ml/tests/KorQuAD-Question-Generation/tokenizer/merges.txt",
+        add_prefix_space=False
     )
-    examples = load_korquad_dataset(config.dev_dataset)
-    random.shuffle(examples)
-    examples = examples[: args.num_samples]
+    examples = load_baseline_dataset(config.dataset,split=args.split)
     dataset = QGDecodingDataset(examples, tokenizer, config.max_sequence_length)
     dataloader = DataLoader(dataset, batch_size=1)
 

@@ -133,3 +133,7 @@ dmypy.json
 
 data/
 artifacts/
+outputs/
+model/
+
+*.yaml

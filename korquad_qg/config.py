@@ -2,8 +2,7 @@ from typing import NamedTuple
 
 
 class QGConfig(NamedTuple):
-    train_dataset: str = "data/train.json"
-    dev_dataset: str = "data/dev.json"
+    dataset: str = "/opt/ml/tests/level2_nlp_mrc-nlp-03/data/train_dataset"
 
     gpt_model_hub_name: str = "taeminlee/kogpt2"
     vocab_path: str = "tokenizer/vocab.json"
@@ -11,7 +10,7 @@ class QGConfig(NamedTuple):
 
     max_sequence_length: int = 512
 
-    epochs: int = 5
+    epochs: int = 21
     lr: float = 5e-5
     train_batch_size: int = 16
     eval_batch_size: int = 16
@@ -22,6 +21,6 @@ class QGConfig(NamedTuple):
     warmup_ratio: float = 0.1
 
     train_log_interval: int = 50
-    validation_interval: int = 3000
-    save_interval: int = 3000
+    validation_interval: int = 500
+    save_interval: int = 1000
     random_seed: int = 0
